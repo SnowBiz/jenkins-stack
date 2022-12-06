@@ -48,7 +48,7 @@ resource "aws_security_group" "jenkins_allow_http" {
 
 # Jenkins
 resource "aws_instance" "web" {
-  ami           = "ami-09d3b3274b6c5d4aa"
+  ami           = data.aws_ami.amazon_linux2_ami.id
   instance_type = "t3.medium"
   key_name      = "${var.ssh_key_name}"
   vpc_security_group_ids = flatten([aws_security_group.jenkins_allow_http.id, var.allow_jenkins_ssh == "true" ? [aws_security_group.jenkins_allow_ssh[0].id] : []])
