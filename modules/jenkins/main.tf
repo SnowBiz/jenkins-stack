@@ -130,8 +130,7 @@ resource "aws_instance" "web" {
 sudo yum update -y
 mkdir /tmp/scripts
 aws s3 cp s3://${aws_s3_bucket.jenkins_user_data.id}/ /tmp/scripts/ --recursive
-sudo bash /tmp/scripts/install_jenkins.sh
-sudo amazon-linux-extras install ansible2 -y
+sudo bash /tmp/scripts/ec2_setup.sh
   EOF
   iam_instance_profile = "${aws_iam_instance_profile.jenkins_instance_profile.id}"
   subnet_id = "${var.jenkins_public_subnet}"
