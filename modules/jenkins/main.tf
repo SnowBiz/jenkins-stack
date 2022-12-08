@@ -46,6 +46,79 @@ resource "aws_security_group" "jenkins_allow_http" {
   }
 }
 
+resource "random_id" "id" {
+	  byte_length = 8
+}
+
+resource "aws_s3_bucket" "jenkins_user_data" {
+   bucket = "jenkins-user-data-${random_id.id.hex}"
+}
+
+resource "aws_s3_bucket_acl" "jenins_user_data_bucket_acl" {
+  bucket = aws_s3_bucket.jenkins_user_data.id
+  acl    = "private"
+}
+
+# Setup S3 bucket for user data scripts
+resource "aws_s3_object" "jenkins_user_data" {
+  for_each = fileset("${path.module}/scripts/", "*")
+  bucket = aws_s3_bucket.jenkins_user_data.id
+  key = each.value
+  source = "${path.module}/scripts/${each.value}"
+  etag = filemd5("${path.module}/scripts/${each.value}")
+}
+
+# Create IAM role for Jenkins instance
+resource "aws_iam_role" "jenkins_iam_role" {
+    name = "jenkins_iam_role"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "jenkins_iam_role_policy" {
+  name = "jenkins_iam_role_policy"
+  role = "${aws_iam_role.jenkins_iam_role.id}"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": ["${aws_s3_bucket.jenkins_user_data.arn}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": ["${aws_s3_bucket.jenkins_user_data.arn}/*"]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "jenkins_instance_profile" {
+    name = "jenkins_instance_profile"
+    role = "jenkins_iam_role"
+}
+
 # Jenkins
 resource "aws_instance" "web" {
   ami           = data.aws_ami.amazon_linux2_ami.id
@@ -55,21 +128,15 @@ resource "aws_instance" "web" {
   user_data = <<EOF
 #!/bin/bash
 sudo yum update -y
-sudo yum install wget
-sudo yum install git
-sudo amazon-linux-extras install java-openjdk11
-sudo amazon-linux-extras install epel -y
-sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
-sudo sed -i s/\$releasever/7/g /etc/yum.repos.d/epel-apache-maven.repo
-sudo yum install -y apache-maven
-sudo yum install -y docker
-sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
-sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
-sudo yum install jenkins -y
-sudo service jenkins start
-EOF
+mkdir /tmp/scripts
+aws s3 cp s3://${aws_s3_bucket.jenkins_user_data.id}/ /tmp/scripts/ --recursive
+sudo bash /tmp/scripts/install_jenkins.sh
+sudo amazon-linux-extras install ansible2 -y
+  EOF
+  iam_instance_profile = "${aws_iam_instance_profile.jenkins_instance_profile.id}"
   subnet_id = "${var.jenkins_public_subnet}"
   tags = {
     Name = "Jenkins"
   }
+  depends_on = [aws_s3_object.jenkins_user_data]
 }
