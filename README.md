@@ -1,5 +1,10 @@
 # jenkins-stack
 <!-- BEGIN_TF_DOCS -->
+## Setup
+Since the repository contains git submodules, follow the below instructions prior to running the stack.
+- cd [repository-directory]
+- git submodule update --init --recursive
+
 ## Requirements
 
 No requirements.
