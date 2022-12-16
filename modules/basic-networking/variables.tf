@@ -23,3 +23,7 @@ variable "availability_zones" {
     description = "Availability Zones"
     type = list
 }
+
+variable "deploy_private_subnets" {
+    description = "Specify if private subnets with nat gateway are to be deployed"
+}

@@ -61,7 +61,7 @@ resource "aws_s3_bucket_acl" "jenins_user_data_bucket_acl" {
 
 # Setup S3 bucket for user data scripts
 resource "aws_s3_object" "jenkins_user_data" {
-  for_each = fileset("${path.module}/scripts/", "*")
+  for_each = fileset("${path.module}/scripts/", "**/*")
   bucket = aws_s3_bucket.jenkins_user_data.id
   key = each.value
   source = "${path.module}/scripts/${each.value}"

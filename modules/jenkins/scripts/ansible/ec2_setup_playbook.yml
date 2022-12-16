@@ -1,0 +1,30 @@
+- name: EC2 Setup
+  hosts: "{{ my_hosts }}"
+  become: true
+  
+  vars:
+    jenkins_init_changes:
+      - option: "JAVA_OPTS"
+        value: "-Dcasc.jenkins.config=/jenkins/casc_configs"
+    jenkins_hostname: localhost
+    java_home: /usr/bin/java
+    jenkins_plugins:
+      - credentials
+      - docker-commons
+      - docker-pipeline
+      - github
+      - ec2-fleet-plugin
+      - configuration-as-code
+    jenkins_plugins_install_dependencies: true
+    jenkins_plugins_state: latest
+  
+  roles:
+  - role: roles/ansible-role-java
+  - role: roles/ansible-role-jenkins
+  
+  # Install dependencies prior to executing roles
+  pre_tasks:
+    - name: Install the latest version of git
+      ansible.builtin.yum:
+        name: git
+        state: latest

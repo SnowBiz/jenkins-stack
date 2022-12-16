@@ -14,4 +14,4 @@ availability_zones = [""]
 # ----------------------------------------------------
 
 /* IP Address used for allowing access to Jenkins */
-my_ip_address = ""
+my_ip_address = "127.0.0.1/32"

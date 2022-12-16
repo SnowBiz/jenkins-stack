@@ -20,13 +20,15 @@ resource "aws_internet_gateway" "igw" {
 
 /* Elastic IP for NAT */
 resource "aws_eip" "nat_eip" {
+  count = var.deploy_private_subnets ? 1 : 0
   vpc        = true
   depends_on = [aws_internet_gateway.igw]
 }
 
 /* NAT */
 resource "aws_nat_gateway" "nat" {
-  allocation_id = "${aws_eip.nat_eip.id}"
+  count = var.deploy_private_subnets ? 1 : 0
+  allocation_id = "${aws_eip.nat_eip[0].id}"
   subnet_id     = "${element(aws_subnet.public_subnet_az1.*.id, 0)}"
   depends_on    = [aws_internet_gateway.igw]
   tags = {
@@ -49,6 +51,7 @@ resource "aws_subnet" "public_subnet_az1" {
 
 /* Private subnets */
 resource "aws_subnet" "private_subnet_az1" {
+  count = var.deploy_private_subnets ? 1 : 0
   vpc_id                  = "${aws_vpc.vpc.id}"
   cidr_block              = "${var.private_subnets_cidr[0]}"
   availability_zone       = "${var.availability_zones[0]}"
@@ -60,6 +63,7 @@ resource "aws_subnet" "private_subnet_az1" {
 }
 
 resource "aws_subnet" "private_subnet_az2" {
+  count = var.deploy_private_subnets ? 1 : 0
   vpc_id                  = "${aws_vpc.vpc.id}"
   cidr_block              = "${var.private_subnets_cidr[1]}"
   availability_zone       = "${var.availability_zones[1]}"
@@ -72,6 +76,7 @@ resource "aws_subnet" "private_subnet_az2" {
 
 /* Routing table for private subnets */
 resource "aws_route_table" "private" {
+  count = var.deploy_private_subnets ? 1 : 0
   vpc_id = "${aws_vpc.vpc.id}"
   tags = {
     Name        = "${var.environment}-private-route-table"
@@ -94,9 +99,10 @@ resource "aws_route" "public_internet_gateway" {
   gateway_id             = "${aws_internet_gateway.igw.id}"
 }
 resource "aws_route" "private_nat_gateway" {
-  route_table_id         = "${aws_route_table.private.id}"
+  count = var.deploy_private_subnets ? 1 : 0
+  route_table_id         = "${aws_route_table.private[0].id}"
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = "${aws_nat_gateway.nat.id}"
+  nat_gateway_id         = "${aws_nat_gateway.nat[0].id}"
 }
 
 /* Route Table Association */
@@ -105,12 +111,14 @@ resource "aws_route_table_association" "public_az1" {
   route_table_id = "${aws_route_table.public.id}"
 }
 resource "aws_route_table_association" "private_az1" {
-  subnet_id      = "${aws_subnet.private_subnet_az1.id}"
-  route_table_id = "${aws_route_table.private.id}"
+  count = var.deploy_private_subnets ? 1 : 0
+  subnet_id      = "${aws_subnet.private_subnet_az1[0].id}"
+  route_table_id = "${aws_route_table.private[0].id}"
 }
 resource "aws_route_table_association" "private_az2" {
-  subnet_id      = "${aws_subnet.private_subnet_az2.id}"
-  route_table_id = "${aws_route_table.private.id}"
+  count = var.deploy_private_subnets ? 1 : 0
+  subnet_id      = "${aws_subnet.private_subnet_az2[0].id}"
+  route_table_id = "${aws_route_table.private[0].id}"
 }
 
 
