@@ -1,4 +1,6 @@
-[submodule "./modules/jenkins/scripts/ansible/roles/ansible-role-java/"]
-	url = https://github.com/SnowBiz/ansible-role-java.git
-[submodule "./modules/jenkins/scripts/ansible/roles/ansible-role-jenkins/"]
-	url = https://github.com/SnowBiz/ansible-role-jenkins.git
+[submodule "ansible-java-role"]
+	path = modules/jenkins/scripts/ansible/roles/ansible-role-java
+	url = https://github.com/SnowBiz/ansible-role-java
+[submodule "ansible-jenkins-role"]
+	path = modules/jenkins/scripts/ansible/roles/ansible-role-jenkins
+	url = https://github.com/SnowBiz/ansible-role-jenkins
