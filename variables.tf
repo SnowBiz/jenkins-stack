@@ -27,3 +27,7 @@ variable "availability_zones" {
 variable "my_ip_address" {
     description = "My IP Address, used in SG for Jenkins access"
 }
+
+variable "ssh_key_pair_name" {
+    description = "The name of a key pair for SSH access to Jenkins"
+}

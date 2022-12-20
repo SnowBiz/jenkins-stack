@@ -12,7 +12,7 @@ source = "./modules/basic-networking"
 module "jenkins" {
   source = "./modules/jenkins"
   allow_jenkins_ssh     = "true"
-  ssh_key_name          = "my-ssh-key"
+  ssh_key_name          = "${var.ssh_key_pair_name}"
   my_ip_address         = "${var.my_ip_address}"
   vpc_id                = "${module.basic-networking.vpc_id}"
   jenkins_public_subnet = "${module.basic-networking.aws_subnet_public_az1_id}"
