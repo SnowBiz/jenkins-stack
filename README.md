@@ -6,8 +6,8 @@ Since the repository contains git submodules, follow the below instructions prio
 - git submodule update --init --recursive
 
 Now for the Terraform stack itself,
-- Update my_ip_address within terraform.tfvars, this is used for SG's and access to Jenkins via HTTP & SSH (Use 127.0.0.1/32 format)
-- Create SSH key within your account, reference keypair name within main.tf Jenkins declaration.
+- Update my_ip_address within `terraform.tfvars`, this is used for SG's and access to Jenkins via HTTP & SSH (Use `127.0.0.1/32` format)
+- Create SSH key within your account (or use an existing one) and provide key pair name within `terraform.tfvars` Jenkins declaration.
 
 Deploy!
 - Terraform init
